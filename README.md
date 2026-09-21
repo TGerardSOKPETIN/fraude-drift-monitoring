@@ -1,5 +1,3 @@
-# fraude-drift-monitoring
-
 Surveillance et détection de dérive (data drift, concept drift) d'un modèle de détection de fraude financière en environnement bancaire. Projet réalisé dans le cadre d'un stage / mémoire encadré par M. Mihoubi, basé sur le cas Poundbank (projet DataCamp).
 
 ## Objectif
@@ -7,20 +5,17 @@ Surveillance et détection de dérive (data drift, concept drift) d'un modèle d
 Comparer trois outils open source de détection de drift (Evidently AI, Alibi-Detect, NannyML) sur les données Poundbank, en reprenant les critères d'évaluation d'un benchmark existant (D3Bench), puis faire évoluer le prototype vers une architecture de monitoring temps réel.
 
 ## Structure du repo
-
-```
 fraude-drift-monitoring/
-├── data/                   # reference.csv et analysis.csv à placer ici (non versionnés, voir data/README.md)
+├── data/ # reference.csv et analysis.csv à placer ici (non versionnés, voir data/README.md)
 ├── src/
-│   ├── common/              # chargement des données, définition des colonnes
-│   ├── drift_evidently/     # détection de drift avec Evidently AI
-│   ├── drift_alibi/         # détection de drift avec Alibi-Detect
-│   └── drift_nannyml/       # détection de drift + estimation de performance (CBPE) avec NannyML
-├── reports/                 # rapports générés par les scripts (HTML/JSON), non versionnés
+│ ├── common/ # chargement des données, définition des colonnes
+│ ├── drift_evidently/ # détection de drift avec Evidently AI
+│ ├── drift_alibi/ # détection de drift avec Alibi-Detect
+│ └── drift_nannyml/ # détection de drift + estimation de performance (CBPE) avec NannyML
+├── reports/ # rapports générés par les scripts (HTML/JSON), non versionnés
 └── docs/
-    ├── etat-de-l-art.md       # plan du volet théorique (data/concept/label drift, cycle de vie ML)
-    └── architecture-cible.md  # trajectoire batch → architecture temps réel (Kafka/Flink)
-```
+├── etat-de-l-art.md # plan du volet théorique (data/concept/label drift, cycle de vie ML)
+└── architecture-cible.md # trajectoire batch → architecture temps réel (Kafka/Flink)
 
 ## Données
 
