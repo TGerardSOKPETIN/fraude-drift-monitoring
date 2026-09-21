@@ -1,0 +1,7 @@
+pandas>=2.0
+numpy>=1.26
+scipy>=1.11
+evidently>=0.4
+alibi-detect>=0.12
+nannyml>=0.13
+matplotlib>=3.8

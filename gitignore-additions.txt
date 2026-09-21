@@ -1,0 +1,13 @@
+# À ajouter à la fin du .gitignore déjà présent dans le repo (template Python)
+
+# Données du projet (non versionnées)
+data/*.csv
+
+# Rapports générés par les scripts
+reports/*.html
+reports/*.json
+reports/*.csv
+!reports/.gitkeep
+
+# Environnement virtuel
+.venv/
