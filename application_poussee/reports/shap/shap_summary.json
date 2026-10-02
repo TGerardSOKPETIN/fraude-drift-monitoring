@@ -1,0 +1,26 @@
+{
+  "top_feature_reference": "user_tenure_months",
+  "top_feature_analyse": "user_tenure_months",
+  "importance_reference": {
+    "user_tenure_months": 1.188379758189248,
+    "transaction_amount": 0.18866998308481214,
+    "time_since_login_min": 0.08033973623695949,
+    "transaction_type_PAYMENT": 0.014283624710318358,
+    "transaction_type_CASH-IN": 0.013681209211298742,
+    "is_first_transaction": 0.013623932763049965,
+    "transaction_type_CASH-OUT": 0.011337075046243109,
+    "transaction_type_TRANSFER": 0.007112434896940618,
+    "transaction_type_MISSING": 0.004657574033577069
+  },
+  "importance_analyse": {
+    "user_tenure_months": 1.1809027578549793,
+    "transaction_amount": 0.1942161657852852,
+    "time_since_login_min": 0.07876789732874072,
+    "transaction_type_PAYMENT": 0.014511975406769401,
+    "transaction_type_CASH-IN": 0.01436048170127376,
+    "is_first_transaction": 0.013152645362374645,
+    "transaction_type_CASH-OUT": 0.011852360843467816,
+    "transaction_type_TRANSFER": 0.007883225094928233,
+    "transaction_type_MISSING": 0.004356321379726505
+  }
+}
