@@ -27,11 +27,13 @@ fraude-drift-monitoring/
 │   └── drift_nannyml/          # détection de drift + estimation de performance (CBPE) avec NannyML
 ├── reports/                    # rapports générés par les scripts (HTML/JSON)
 ├── exploration_drift_detection.ipynb   # notebook d'exploration et de comparaison, EDA incluse
+├── application_poussee/        # modèles champion/challenger, explicabilité SHAP, monitoring CBPE (voir application_poussee/README.md)
 └── docs/
     ├── etat-de-l-art.md                              # plan du volet théorique (data/concept/label drift, cycle de vie ML)
     ├── analyse-comparative-outils-drift.md           # analyse comparative rigoureuse des trois outils
     ├── architecture-monitoring-alertes-retraining.md # stratégie d'alerte et de réentraînement
     ├── architecture-cible.md                         # trajectoire batch → architecture temps réel (Kafka/Flink)
+    ├── application-poussee-modele-shap-monitoring.md # détail et interprétation de la partie application poussée
     └── exploration_drift_detection.html              # export statique du notebook (lecture rapide, sans Jupyter)
 ```
 
@@ -70,6 +72,10 @@ Les rapports générés (HTML pour Evidently, JSON/CSV pour les trois) sont écr
 
 Le notebook `exploration_drift_detection.ipynb` regroupe l'analyse exploratoire, l'exécution des trois outils et la comparaison des résultats dans un seul document reproductible.
 
+## Application poussée
+
+En complément du monitoring du modèle d'origine (ci-dessus), le dossier [`application_poussee/`](application_poussee/README.md) construit et surveille nos propres modèles (champion LightGBM / challenger régression logistique), avec explicabilité SHAP et monitoring CBPE. Détail et interprétation dans [`docs/application-poussee-modele-shap-monitoring.md`](docs/application-poussee-modele-shap-monitoring.md). Un notebook complémentaire, [`application_poussee/exploration_application_poussee.ipynb`](application_poussee/exploration_application_poussee.ipynb), regroupe entraînement, SHAP et monitoring dans un seul document avec graphiques inline, dans le même esprit que `exploration_drift_detection.ipynb`.
+
 ## Documentation
 
 - [Notebook complet (nbviewer)](https://nbviewer.org/github/TGerardSOKPETIN/fraude-drift-monitoring/blob/main/exploration_drift_detection.ipynb) — rendu fiable pour un fichier volumineux, à privilégier sur l'aperçu GitHub natif
@@ -78,3 +84,4 @@ Le notebook `exploration_drift_detection.ipynb` regroupe l'analyse exploratoire,
 - [Stratégie d'alerte et de réentraînement](docs/architecture-monitoring-alertes-retraining.md)
 - [Architecture cible (batch → temps réel)](docs/architecture-cible.md)
 - [Cadrage théorique](docs/etat-de-l-art.md)
+- [Application poussée — modèles, SHAP, monitoring](docs/application-poussee-modele-shap-monitoring.md)

@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from models.features import build_feature_matrix, feature_columns, TARGET_COL  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
-DATA_DIR = Path("/home/claude")
+DATA_DIR = ROOT.parent / "data"
 ARTIFACTS = ROOT / "models" / "artifacts"
 OUT_DIR = ROOT / "reports" / "monitoring"
 OUT_DIR.mkdir(parents=True, exist_ok=True)

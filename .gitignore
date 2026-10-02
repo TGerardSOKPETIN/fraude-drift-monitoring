@@ -217,3 +217,10 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 .ipynb_checkpoints/
+
+# Application poussée : modèles et prédictions volumineux, régénérables
+# en relançant application_poussee/models/train.py (cf. application_poussee/README.md)
+application_poussee/models/artifacts/
+
+# Fichiers téléchargés depuis les conversations Claude, pas destinés au dépôt
+Claude outputs/
