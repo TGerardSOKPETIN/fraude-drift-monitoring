@@ -218,9 +218,15 @@ __marimo__/
 .streamlit/secrets.toml
 .ipynb_checkpoints/
 
-# Application poussée : modèles et prédictions volumineux, régénérables
-# en relançant application_poussee/models/train.py (cf. application_poussee/README.md)
-application_poussee/models/artifacts/
+# Application poussée : modèles et prédictions volumineux, suivis par DVC
+# (voir dvc.yaml) plutôt que par une exclusion .gitignore -- DVC gère lui-même
+# les .gitignore internes à application_poussee/models/artifacts/ et data/
+# pour les gros fichiers binaires, tout en laissant Git voir les petits
+# fichiers .dvc qui les référencent.
+
+# Base de logs de prédictions (SQLite) : artefact d'exécution locale/démo,
+# pas du code, jamais commité (cf. apps/inference_app.py, docker-compose.yml)
+application_poussee/logs/
 
 # Fichiers téléchargés depuis les conversations Claude, pas destinés au dépôt
 Claude outputs/

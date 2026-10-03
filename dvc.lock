@@ -1,0 +1,45 @@
+schema: '2.0'
+stages:
+  train:
+    cmd: python application_poussee/models/train.py
+    deps:
+    - path: application_poussee/models/features.py
+      hash: md5
+      md5: 34bf85985286f2919760f1716539631b
+      size: 1564
+    - path: application_poussee/models/train.py
+      hash: md5
+      md5: 6db6fb109e0b97d533555ebbe1403918
+      size: 7078
+    - path: data/analysis.csv
+      hash: md5
+      md5: 92441895b0b6b4e15e44d7353b82ed8d
+      size: 3628360
+    - path: data/reference.csv
+      hash: md5
+      md5: bc0ba19e91b8235453ffce7ef41c85b9
+      size: 4648113
+    params:
+      params.yaml:
+        train.random_state: 42
+    outs:
+    - path: application_poussee/models/artifacts/analysis_scored.csv
+      hash: md5
+      md5: 460c06d47deec1b39c1e63ae48e4fac6
+      size: 5202563
+    - path: application_poussee/models/artifacts/challenger_logreg.joblib
+      hash: md5
+      md5: e81dbb73fa7be212bff7e742da39596f
+      size: 1929
+    - path: application_poussee/models/artifacts/champion_lightgbm.joblib
+      hash: md5
+      md5: 8e46018990a3e9637c61026d388d77e8
+      size: 1362204
+    - path: application_poussee/models/artifacts/comparison_with_original.json
+      hash: md5
+      md5: cbd928440ee2d0593ae5955197fdec6c
+      size: 123
+    - path: application_poussee/models/artifacts/training_metrics.json
+      hash: md5
+      md5: 727ec13dbb0b99a18afb2aef4e3b5e4d
+      size: 671

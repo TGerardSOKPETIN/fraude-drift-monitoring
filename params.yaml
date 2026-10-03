@@ -1,0 +1,6 @@
+# Parametres du pipeline d'entrainement (cf. dvc.yaml, stage "train").
+# Verser ici plutot que coder en dur dans train.py permet a DVC de detecter
+# un changement de parametre et de proposer un re-entrainement (dvc repro),
+# et de le faire figurer dans dvc.lock comme partie de la version du modele.
+train:
+  random_state: 42

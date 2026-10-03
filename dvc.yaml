@@ -1,0 +1,25 @@
+# Pipeline DVC : entrainement champion/challenger + scoring de analysis.csv.
+# Objectif (cf. Workshop 3, section 5) : que chaque version du modele soit
+# reproductible et tracable a une version precise des donnees, du code et
+# des parametres. "dvc repro" relance train.py uniquement si une dependance
+# a change ; "dvc dag" affiche ce schema ; "dvc metrics show" lit les
+# metriques sans ouvrir training_metrics.json a la main.
+stages:
+  train:
+    cmd: python application_poussee/models/train.py
+    deps:
+      - data/reference.csv
+      - data/analysis.csv
+      - application_poussee/models/train.py
+      - application_poussee/models/features.py
+    params:
+      - params.yaml:
+          - train.random_state
+    outs:
+      - application_poussee/models/artifacts/champion_lightgbm.joblib
+      - application_poussee/models/artifacts/challenger_logreg.joblib
+      - application_poussee/models/artifacts/analysis_scored.csv
+      - application_poussee/models/artifacts/comparison_with_original.json
+    metrics:
+      - application_poussee/models/artifacts/training_metrics.json:
+          cache: false

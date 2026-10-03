@@ -14,6 +14,7 @@ import joblib
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
+import yaml
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     average_precision_score,
@@ -33,7 +34,13 @@ DATA_DIR = ROOT.parent / "data"
 OUT_DIR = ROOT / "models" / "artifacts"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-RANDOM_STATE = 42
+# Graine aleatoire lue depuis params.yaml (a la racine du depot) plutot que
+# codee en dur, pour que DVC la detecte comme parametre versionne du pipeline
+# (cf. dvc.yaml, stage "train") et qu'un changement declenche un re-entrainement.
+PARAMS_PATH = ROOT.parent / "params.yaml"
+with open(PARAMS_PATH) as f:
+    _params = yaml.safe_load(f)
+RANDOM_STATE = _params["train"]["random_state"]
 
 
 def evaluate(y_true, y_proba, threshold=0.5) -> dict:
