@@ -228,5 +228,11 @@ __marimo__/
 # pas du code, jamais commité (cf. apps/inference_app.py, docker-compose.yml)
 application_poussee/logs/
 
+# Base de logs SQLite isolée utilisée par la suite de tests (cf.
+# application_poussee/tests/conftest.py) -- nettoyée automatiquement en fin
+# de suite, cette règle est une sécurité si les tests sont interrompus avant
+# ce nettoyage
+application_poussee/tests/test_predictions.db
+
 # Fichiers téléchargés depuis les conversations Claude, pas destinés au dépôt
 Claude outputs/

@@ -52,8 +52,17 @@ _state = {}
 
 
 def _init_log_db(path: Path) -> None:
+    """Note d'implementation : `with sqlite3.connect(path) as conn:` ne
+    ferme PAS la connexion a la sortie du bloc (seulement commit/rollback de
+    la transaction, specificite du module sqlite3) -- sans fermeture
+    explicite, chaque (re)demarrage du service laisse une connexion ouverte.
+    Sans impact notable en production (un seul appel par cycle de vie du
+    processus), mais bloquant pour les tests, qui redemarrent le service a
+    chaque test (cf. tests/test_inference_app.py) : le fichier de logs reste
+    verrouille sous Windows meme apres la fin de la suite."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    with sqlite3.connect(path) as conn:
+    conn = sqlite3.connect(path)
+    try:
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS predictions (
@@ -75,6 +84,8 @@ def _init_log_db(path: Path) -> None:
             """
         )
         conn.commit()
+    finally:
+        conn.close()
 
 
 @contextmanager

@@ -1,0 +1,4 @@
+# Dependances de test uniquement (ne pas melanger avec apps/requirements.txt,
+# qui liste les dependances du service lui-meme -- cf. Dockerfile)
+pytest>=8.0
+httpx>=0.27
