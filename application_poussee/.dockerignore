@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.venv/
+reports/
+*.ipynb
+.ipynb_checkpoints/
+models/artifacts/analysis_scored.csv

@@ -1,0 +1,13 @@
+services:
+  fraud-api:
+    build:
+      context: ./application_poussee
+      dockerfile: Dockerfile
+    container_name: fraud-api
+    ports:
+      - "8000:8000"
+    volumes:
+      # Les logs de prediction (SQLite) survivent au redemarrage du
+      # conteneur et restent lisibles depuis l'hote par les scripts de
+      # monitoring (executes hors conteneur, cf. monitoring/run_monitoring.py)
+      - ./application_poussee/logs:/app/logs
