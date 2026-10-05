@@ -54,7 +54,7 @@ jobs:
       - name: Installer les dependances d'entrainement
         run: |
           pip install -r application_poussee/apps/requirements.txt
-          pip install pyyaml "dvc[gdrive]"
+          pip install pyyaml "dvc[gdrive]" "cryptography<44"
 
       - name: Configurer l'acces au remote DVC (compte de service)
         run: dvc remote modify --local storage gdrive_use_service_account true
@@ -195,7 +195,7 @@ jobs:
 
       - name: Installer les dependances de monitoring
         run: |
-          pip install pandas requests "evidently>=0.7" "dvc[gdrive]"
+          pip install pandas requests "evidently>=0.7" "dvc[gdrive]" "cryptography<44"
           dvc remote modify --local storage gdrive_use_service_account true
 
       - name: Recuperer les donnees (dvc pull)
