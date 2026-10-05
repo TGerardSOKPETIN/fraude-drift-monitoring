@@ -265,6 +265,28 @@ jobs:
             echo "::warning title=Alerte drift::Le seuil de drift est depasse (voir le rapport Evidently)"
           fi
 
+      - uses: actions/download-artifact@v4
+        with:
+          name: model-artifacts
+          path: ${{ env.ARTIFACTS_DIR }}
+
+      - name: Generer le tableau de bord
+        run: |
+          python application_poussee/monitoring/build_dashboard.py | tee dashboard_output.txt
+          {
+            echo "### Tableau de bord"
+            echo "Page HTML complete dans les artefacts du run (dashboard)."
+            echo '```'
+            cat dashboard_output.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dashboard
+          path: application_poussee/reports/monitoring/dashboard.html
+          retention-days: 30
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
