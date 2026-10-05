@@ -9,8 +9,8 @@ stages:
       size: 1564
     - path: application_poussee/models/train.py
       hash: md5
-      md5: 6db6fb109e0b97d533555ebbe1403918
-      size: 7078
+      md5: 4b6ef1b488afea96a14df77a028bf55c
+      size: 7043
     - path: data/analysis.csv
       hash: md5
       md5: 92441895b0b6b4e15e44d7353b82ed8d
@@ -21,6 +21,19 @@ stages:
       size: 4648113
     params:
       params.yaml:
+        train.param_grid:
+        - num_leaves: 31
+          learning_rate: 0.05
+          n_estimators: 400
+          min_child_samples: 20
+        - num_leaves: 63
+          learning_rate: 0.03
+          n_estimators: 600
+          min_child_samples: 30
+        - num_leaves: 15
+          learning_rate: 0.08
+          n_estimators: 300
+          min_child_samples: 15
         train.random_state: 42
     outs:
     - path: application_poussee/models/artifacts/analysis_scored.csv

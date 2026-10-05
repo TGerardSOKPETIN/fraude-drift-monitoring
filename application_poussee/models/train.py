@@ -41,6 +41,7 @@ PARAMS_PATH = ROOT.parent / "params.yaml"
 with open(PARAMS_PATH) as f:
     _params = yaml.safe_load(f)
 RANDOM_STATE = _params["train"]["random_state"]
+PARAM_GRID = _params["train"]["param_grid"]
 
 
 def evaluate(y_true, y_proba, threshold=0.5) -> dict:
@@ -75,11 +76,10 @@ def main():
         X_train, y_train, test_size=0.2, stratify=y_train, random_state=RANDOM_STATE
     )
 
-    param_grid = [
-        {"num_leaves": 31, "learning_rate": 0.05, "n_estimators": 400, "min_child_samples": 20},
-        {"num_leaves": 63, "learning_rate": 0.03, "n_estimators": 600, "min_child_samples": 30},
-        {"num_leaves": 15, "learning_rate": 0.08, "n_estimators": 300, "min_child_samples": 15},
-    ]
+    # Grille lue depuis params.yaml (train.param_grid) : modifier n_estimators
+    # ou un autre hyperparametre la-bas suffit pour declencher un
+    # reentrainement (dvc repro, puis CI) sans toucher au code.
+    param_grid = PARAM_GRID
     best_model, best_pr_auc, best_params = None, -1.0, None
     for params in param_grid:
         model = lgb.LGBMClassifier(
