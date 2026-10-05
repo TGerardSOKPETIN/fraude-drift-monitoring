@@ -7,6 +7,6 @@ train:
   # Grille d'hyperparametres LightGBM (champion) : la meilleure configuration
   # sur le jeu de validation interne est retenue puis reentrainee (cf. train.py).
   param_grid:
-    - {num_leaves: 31, learning_rate: 0.05, n_estimators: 400, min_child_samples: 20}
-    - {num_leaves: 63, learning_rate: 0.03, n_estimators: 600, min_child_samples: 30}
-    - {num_leaves: 15, learning_rate: 0.08, n_estimators: 300, min_child_samples: 15}
+    - {num_leaves: 31, learning_rate: 0.05, n_estimators: 800, min_child_samples: 20}
+    - {num_leaves: 63, learning_rate: 0.03, n_estimators: 1200, min_child_samples: 30}
+    - {num_leaves: 15, learning_rate: 0.08, n_estimators: 600, min_child_samples: 15}

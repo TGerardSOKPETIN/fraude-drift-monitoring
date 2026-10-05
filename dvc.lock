@@ -24,35 +24,35 @@ stages:
         train.param_grid:
         - num_leaves: 31
           learning_rate: 0.05
-          n_estimators: 400
+          n_estimators: 800
           min_child_samples: 20
         - num_leaves: 63
           learning_rate: 0.03
-          n_estimators: 600
+          n_estimators: 1200
           min_child_samples: 30
         - num_leaves: 15
           learning_rate: 0.08
-          n_estimators: 300
+          n_estimators: 600
           min_child_samples: 15
         train.random_state: 42
     outs:
     - path: application_poussee/models/artifacts/analysis_scored.csv
       hash: md5
-      md5: 460c06d47deec1b39c1e63ae48e4fac6
-      size: 5202563
+      md5: cf2180cbdaa86f7430bda90c55dbca1c
+      size: 5203009
     - path: application_poussee/models/artifacts/challenger_logreg.joblib
       hash: md5
       md5: e81dbb73fa7be212bff7e742da39596f
       size: 1929
     - path: application_poussee/models/artifacts/champion_lightgbm.joblib
       hash: md5
-      md5: 8e46018990a3e9637c61026d388d77e8
-      size: 1362204
+      md5: fefb53ce0f2e04ea721edd6ec6c5a55e
+      size: 2716604
     - path: application_poussee/models/artifacts/comparison_with_original.json
       hash: md5
-      md5: cbd928440ee2d0593ae5955197fdec6c
+      md5: e765c7159ab6d0da1a10a05bdc53cf9d
       size: 123
     - path: application_poussee/models/artifacts/training_metrics.json
       hash: md5
-      md5: 727ec13dbb0b99a18afb2aef4e3b5e4d
+      md5: 2c327f426c99c09792bbbe5611e65109
       size: 671
