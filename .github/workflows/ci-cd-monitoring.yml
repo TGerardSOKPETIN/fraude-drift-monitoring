@@ -1,0 +1,247 @@
+# Pipeline CI/CD + monitoring du service de detection de fraude (Workshop 3).
+#
+# Enchainement : train -> test -> build -> deploy -> monitor
+#   train   : recupere les donnees versionnees par DVC (remote Google Drive),
+#             relance le pipeline `dvc repro` et publie les artefacts du modele.
+#   test    : lance la suite pytest (service FastAPI + features + metriques).
+#   build   : construit l'image Docker et la valide (smoke test sur /health, /predict).
+#   deploy  : publie l'image dans le registre GitHub (ghcr.io), branche main uniquement.
+#   monitor : demarre l'image, rejoue du trafic, execute la detection de drift
+#             (Evidently) sur les logs de production et publie le rapport.
+#
+# Secret requis : GDRIVE_CREDENTIALS_DATA (cle JSON du compte de service Google
+# autorise en lecture sur le dossier Drive du remote DVC).
+
+name: ci-cd-monitoring
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    # Surveillance hebdomadaire (lundi, 06h17 UTC) meme sans nouveau commit.
+    - cron: "17 6 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.11"
+  ARTIFACTS_DIR: application_poussee/models/artifacts
+
+jobs:
+  # ---------------------------------------------------------------- TRAIN
+  train:
+    name: train (dvc pull + dvc repro)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            application_poussee/apps/requirements.txt
+
+      - name: Installer les dependances d'entrainement
+        run: |
+          pip install -r application_poussee/apps/requirements.txt
+          pip install pyyaml "dvc[gdrive]"
+
+      - name: Configurer l'acces au remote DVC (compte de service)
+        run: dvc remote modify --local storage gdrive_use_service_account true
+
+      - name: Recuperer les donnees versionnees (dvc pull)
+        env:
+          GDRIVE_CREDENTIALS_DATA: ${{ secrets.GDRIVE_CREDENTIALS_DATA }}
+        run: dvc pull data/reference.csv data/analysis.csv
+
+      - name: Entrainer le modele (dvc repro)
+        run: dvc repro
+
+      - name: Resume des metriques
+        run: |
+          echo "### Metriques d'entrainement" >> "$GITHUB_STEP_SUMMARY"
+          dvc metrics show --md >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: model-artifacts
+          path: ${{ env.ARTIFACTS_DIR }}
+          retention-days: 14
+
+  # ----------------------------------------------------------------- TEST
+  test:
+    name: test (pytest)
+    needs: train
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            application_poussee/apps/requirements.txt
+            application_poussee/tests/requirements.txt
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: model-artifacts
+          path: ${{ env.ARTIFACTS_DIR }}
+
+      - name: Installer les dependances
+        run: |
+          pip install -r application_poussee/apps/requirements.txt
+          pip install -r application_poussee/tests/requirements.txt
+
+      - name: Lancer les tests
+        run: python -m pytest application_poussee/tests -v
+
+  # ---------------------------------------------------------------- BUILD
+  build:
+    name: build (image Docker + smoke test)
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: model-artifacts
+          path: ${{ env.ARTIFACTS_DIR }}
+
+      - name: Construire l'image
+        run: docker build -t fraud-api:ci application_poussee
+
+      - name: Smoke test du conteneur
+        run: |
+          docker run -d --name fraud-api -p 8000:8000 fraud-api:ci
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8000/health; then break; fi
+            sleep 2
+          done
+          curl -fsS http://localhost:8000/health
+          curl -fsS -X POST http://localhost:8000/predict \
+            -H "Content-Type: application/json" \
+            -d '{"time_since_login_min": 15, "transaction_amount": 120.5, "transaction_type": "PAYMENT", "is_first_transaction": false, "user_tenure_months": 24}'
+          docker stop fraud-api
+
+      - name: Exporter l'image
+        run: docker save fraud-api:ci | gzip > fraud-api-image.tar.gz
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fraud-api-image
+          path: fraud-api-image.tar.gz
+          retention-days: 7
+
+  # --------------------------------------------------------------- DEPLOY
+  deploy:
+    name: deploy (publication sur ghcr.io)
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: fraud-api-image
+
+      - name: Charger l'image
+        run: gunzip -c fraud-api-image.tar.gz | docker load
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publier l'image (tag = SHA du commit + latest)
+        run: |
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}/fraud-api"
+          docker tag fraud-api:ci "$IMAGE:${GITHUB_SHA}"
+          docker tag fraud-api:ci "$IMAGE:latest"
+          docker push "$IMAGE:${GITHUB_SHA}"
+          docker push "$IMAGE:latest"
+          echo "Image publiee : $IMAGE:${GITHUB_SHA}" >> "$GITHUB_STEP_SUMMARY"
+
+  # -------------------------------------------------------------- MONITOR
+  monitor:
+    name: monitor (trafic rejoue + drift Evidently)
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Installer les dependances de monitoring
+        run: |
+          pip install pandas requests "evidently>=0.7" "dvc[gdrive]"
+          dvc remote modify --local storage gdrive_use_service_account true
+
+      - name: Recuperer les donnees (dvc pull)
+        env:
+          GDRIVE_CREDENTIALS_DATA: ${{ secrets.GDRIVE_CREDENTIALS_DATA }}
+        run: dvc pull data/reference.csv data/analysis.csv
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: fraud-api-image
+
+      - name: Demarrer le service
+        run: |
+          gunzip -c fraud-api-image.tar.gz | docker load
+          mkdir -p application_poussee/logs
+          docker run -d --name fraud-api -p 8000:8000 \
+            -v "$PWD/application_poussee/logs:/app/logs" fraud-api:ci
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8000/health; then break; fi
+            sleep 2
+          done
+
+      - name: Rejouer du trafic de production simule
+        run: python application_poussee/monitoring/replay_traffic.py --n 300
+
+      - name: Arreter le service (ecriture complete des logs)
+        run: docker stop fraud-api
+
+      - name: Detection de drift sur les logs de production
+        run: |
+          python application_poussee/monitoring/run_drift_on_logs.py | tee drift_output.txt
+          {
+            echo "### Monitoring du drift (donnees de production)"
+            echo '```'
+            cat drift_output.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          if grep -q "ALERTE DRIFT" drift_output.txt; then
+            echo "::warning title=Alerte drift::Le seuil de drift est depasse (voir le rapport Evidently)"
+          fi
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: drift-report
+          path: |
+            application_poussee/reports/monitoring/drift_production_log.html
+            application_poussee/reports/monitoring/drift_production_log.json
+          retention-days: 30
