@@ -41,8 +41,13 @@ jobs:
     name: train (dvc pull + dvc repro)
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # historique complet : necessaire pour comparer avec main
 
       - uses: actions/setup-python@v5
         with:
@@ -71,6 +76,29 @@ jobs:
         run: |
           echo "### Metriques d'entrainement" >> "$GITHUB_STEP_SUMMARY"
           dvc metrics show --md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Comparer les metriques avec main (Pull Request)
+        if: github.event_name == 'pull_request'
+        run: |
+          DIFF=$(dvc metrics diff origin/main --md)
+          if [ -z "$DIFF" ]; then
+            DIFF="Aucune difference de metrique par rapport a main."
+          fi
+          {
+            echo "### Metriques du modele : cette branche par rapport a main"
+            echo
+            echo "$DIFF"
+          } > metrics_diff.md
+          cat metrics_diff.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publier la comparaison dans la Pull Request
+        if: github.event_name == 'pull_request'
+        continue-on-error: true   # echoue sans gravite sur une PR venant d'un fork (pas d'ecriture)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr comment "${{ github.event.pull_request.number }}" \
+            --body-file metrics_diff.md --edit-last --create-if-none
 
       - uses: actions/upload-artifact@v4
         with:
